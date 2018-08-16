@@ -304,7 +304,127 @@ rptmongo:SECONARY>db.test.find().limit(5)
 
 
 
+################################################
+Sharding 
+################################################
+Sharding의 가장 큰 목적은 파티셔닝을 통한 데이터 분산 처리와 성능 향상을 위한 load balancing입니다.
+빅 데이터의 효율적 관리와 백업 및 복구 전략 수립을 위한 솔루션
 
+3대 이상 샤드 구축 권장
+싱글 노드를 운영할 때 요구되는 메모리 영역보다 최소 20~30% 이상의 추가 메모리 영역이 요구됩니다.
+config 서버는 최소 3대 이상 활성화할 것을 권장
+config 서버는 샤드 시스템 구축과 관련된 메타 데이터를 저장 관리하며 빅 데이터의 빠른 검색을 위한 인덱스 정보를 저장, 관리하기 때문에 샤드 서버와는 별도의 서버에 구축
+
+>> 실습
+-- 폴더를 미리 만듬.
+[os] mkdir   c:\mongodb\shard1
+[os] mkdir   c:\mongodb\shard2
+[os] mkdir   c:\mongodb\shard3
+[os] mkdir   c:\mongodb\config1
+[os] mkdir   c:\mongodb\config2
+[os] mkdir   c:\mongodb\config3
+
+
+#  데이터를 저장할 Shard서버 실행 
+#터미널 1에서 
+[os] mongod --shardsvr --replSet shardset --dbpath c:\mongodb\shard1 --port 40001
+#터미널 2에서 
+[os] mongod --shardsvr --replSet shardset --dbpath c:\mongodb\shard2 --port 40002
+#터미널 3에서 
+[os] mongod --shardsvr --replSet shardset --dbpath c:\mongodb\shard3 --port 40003
+
+
+#터미널 4에서 데이터를 저장할 Shard서버들의 replicaset 구성
+[os] mongo localhost:40001/admin
+rs.initiate(
+  {
+    _id :"shardset",
+    members: [
+      { _id : 0, host : "localhost:40001" },
+      { _id : 1, host : "localhost:40002" },
+      { _id : 2, host : "localhost:40003" }
+    ]
+  }
+)
+
+
+# Config서버 실행
+#터미널 5에서 
+[os] mongod --configsvr --replSet configset  --dbpath c:\mongodb\config1 --port 50001 
+#터미널 6에서 
+[os] mongod --configsvr --replSet configset  --dbpath c:\mongodb\config2 --port 50002 
+#터미널 7에서 
+[os] mongod --configsvr --replSet configset  --dbpath c:\mongodb\config3 --port 50003
+
+
+#터미널 8에서 ConfigServer들의 replica set구성
+[os] mongo localhost:50001/admin
+> rs.initiate(
+  {
+    _id: "configset",
+    configsvr: true,
+    members: [
+      { _id : 0, host : "localhost:50001" },
+      { _id : 1, host : "localhost:50002" },
+      { _id : 2, host : "localhost:50003" }
+    ]
+  }
+)
+
+
+# Route Servert실행 및 config server에 연결 (mongos)
+#터미널 9에서 
+[os] mongos --configdb configset/localhost:50001,localhost:50002,localhost:50003   --port  50000
+
+
+
+# mongos 접속 후 샤드 노드 등록
+#터미널 10에서 
+[root@localhost ~]# mongo localhost:50000/admin
+> db.runCommand({addshard :"shardset/localhost:40001"})
+> db.runCommand({addshard :"shardset/localhost:40002"})
+> db.runCommand({addshard :"shardset/localhost:40003"})
+
+# 해당 디비의 샤드 활성화
+> db.runCommand({enablesharding: "test"})
+
+# collection을 생성하고 샤드키 등록, 샤드키 설정시 반드시 인덱스를 생성해야 함.
+> db.runCommand( {shardcollection:"test.things", key:{empno:1} })
+
+# shard 노드 조회
+> db.runCommand({listshards:1})
+
+#터미널 11에서
+C:\Users\Administrator>mongo localhost:50000/test
+#데이터 저장
+for(var nb=100000;n<=300000;n++) db.things.save({empno:n, ename:"test", sa1:1000})
+
+sh.status()
+
+
+# mongo shell로 샤드서버1에 접속해서 test DB에 접속해서 저장된 data건수 확인
+#터미널 12에서
+C:\>mongo localhost:40001/test
+>db.things.count()
+
+
+#mongo프로세스로 샤드서버2에 접속해서 test DB에 접속해서 저장된 data건수 확인
+#터미널 13에서
+C:\>mongo localhost:40002/test
+>db.things.count()
+
+#mongo프로세스로 샤드서버3에 접속해서 test DB에 접속해서 저장된 data건수 확인
+#터미널 14에서
+C:\>mongo localhost:40003/test
+>db.things.count()
+
+
+#밸런싱 관련 함수들 : mongos 서버에 connect해서 수행
+sh.isBalancerRunning()
+sh.enableBalancing(컬렉션 이름)
+sh.startBalancer()
+sh.disableBalancing(컬렉션이름)
+sh.stopBalancer()
 
 
 
