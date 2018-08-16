@@ -218,6 +218,90 @@ public class FindEx {
     }
 }
 
+##############################################
+ mongodb  replicaset 설정
+#############################################
+
+primary DB ==> C:\MONGODB\disk1
+secondary DB ==> C:\MONGODB\disk2
+secondary DB for backup ==> C:\MONGODB\disk3
+
+
+
+#primary DB 노드에 mongodb 인스턴스 시작
+C:\>mongod    --dbpath c:\MONGODB\disk1 --port 10001  --replSet  rptmongo  --oplogSize 10   
+
+
+#secondary DB 노드에 mongodb 인스턴스 시작
+C:\>mongod    --dbpath c:\MONGODB\disk2 --port 10002  --replSet  rptmongo  --oplogSize 10   
+
+#secondary DB for backup노드에 mongodb 인스턴스 시작
+C:\>mongod    --dbpath c:\MONGODB\disk3 --port 10003  --replSet  rptmongo  --oplogSize 10   
+
+
+#mongo shell 실행 : replicatset  설정
+C:\>mongo localhost:10001/admin
+
+db.runCommand({ "replSetInitiate" : { _id : "rptmongo", members : [{_id: 1, host: "localhost:10001"},
+           {_id: 2, host: "localhost:10002"},
+	   {_id: 3, host: "localhost:10003", arbiterOnly: true }]
+	   }})
+
+#mongo shell 실행 : replicatset  초기화 
+C:\>mongo localhost:10001/admin
+
+rs.initiate()
+
+PRIMARY> rs.add("localhost:10002")
+PRIMARY> rs.add("localhost:10003", {arbiterOnly: true})
+
+
+#mongo shell 실행 :
+C:\>mongo localhost:10002/test
+SECONDARY> 
+
+
+# mongo shell 실행 : primary DB로 접속해서 replicaset환경 정보 확인
+C:\>mongo localhost:10001/admin
+PRIMARY>db.printReplicationInfo()
+PRIMARY>db.printSlaveReplicationInfo()
+PRIMARY> show dbs
+
+# primary DB 종료
+PRIMARY> db.shutdownServer() 
+
+#secondary DB가 primary DB로 변경된것을 확인합니다.
+C:\ >mongo localhost:10002/test
+PRIMARY> 
+
+C:\>mongo localhost:10003 
+ARBITAR>
+
+# 다시 primary DB의 mongodb인스턴스 시작
+C:\>mongod    --dbpath D:\MONGODB\disk1 --port 10001  --replSet  rptmonog  --oplogSize 10   
+
+#secondary DB가 secondary DB로 변경되었는지 여부를 확인합니다.
+C:\>mongo localhost:10002/test
+SECONDARY> 
+
+#primary DB로 접속해서 replicaset환경 정보 확인
+C:\>mongo localhost:10001/admin
+rptmongo:PRIMARY> db.printSlaveReplicationInfo()
+rptmongo:PRIMARY> db.printReplicationInfo()
+
+rptmongo:PRIMARY> rs.status()
+rptmongo:PRIMARY> for (k=1;k<10001;k++) db.test.insert({a:k})
+
+rptmongo:PRIMARY>db.test.find().count()
+rptmongo:PRIMARY>show collections
+rptmongo:PRIMARY>db.test.find().limit(5)
+
+C:\>mongo localhost:10002/test
+rptmongo:SECONARY>db.setSlaveOk()
+rptmongo:SECONARY>db.test.find().count()
+rptmongo:SECONARY>show collections
+rptmongo:SECONARY>db.test.find().limit(5)
+
 
 
 
