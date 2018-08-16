@@ -397,7 +397,8 @@ rs.initiate(
 #터미널 11에서
 C:\Users\Administrator>mongo localhost:50000/test
 #데이터 저장
-for(var nb=100000;n<=300000;n++) db.things.save({empno:n, ename:"test", sa1:1000})
+
+for(var n=100000;n<=300000;n++) db.things.save({empno:n, ename:"test", sa1:1000})
 
 sh.status()
 
