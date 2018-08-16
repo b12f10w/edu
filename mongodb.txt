@@ -1,0 +1,148 @@
+#MongoDB 인스턴스 활성화 (MongoDB 서버 start)
+"C:\Program Files\MongoDB\Server\4.0\bin\mongod.exe" --dbpath="c:\data\db"  --logpath="c:\log\"
+
+#MongoDB에 접속하는 Client Shell Program 실행
+"C:\Program Files\MongoDB\Server\4.0\bin\mongo.exe"
+
+#MongoDB 도움말
+mongo> help
+
+#현재 MongoDB내에 생성되어 있는 데이터베이스의 상태를 확인
+mongo> show dbs
+
+#MongoDB를 종료시킬 때 admin 데이터베이스로 이동해서 db.shutdownServer() 실행
+mongo> use admin
+mongo> db.shutdownServer()
+
+
+#local db로 변경해서 db 구조 확인
+mongo> use local
+
+#local db 구조 확인
+mongo> db.stats()
+
+#local db 내에 생성된 collection목록 확인
+mongo> show collections
+
+
+# 데이터베이스 생성
+> use test
+> db
+> show dbs   --데이터베이스 목록에서는 물리적으로 아직 생성되지 않았습니다.
+> db.book.insert({"title":"bigdata", "author": "koreait"})
+> show dbs
+
+> db.createCollection("articles", {
+   capped: true,
+   autoIndexId : true,
+   size : 6142800,
+   max : 10000})
+   
+> show collections
+
+> db.stats()   -- 논리적 구조 확인
+
+
+# bulk insert
+> db.books.insert([{"title":"redis", "author": "koreait" , "price":15000},
+   {"name":"nosql", "publisher": "it", "price":10000}])
+
+# 조건없이 collection으로 부터 전체 데이터 검색
+> db.books.find()
+ 
+>db.books.insert([{"title":"mysql", "author": "oracle", "desc":"RDBMS"},
+   {"name":"cassandra", "publisher": "facebook", "desc":"nosql"}
+   ])
+
+> db.books.find()
+
+> db.books.remove({"title" : "bigdata"}, true)
+> db.books.find()
+
+>db.books.insert([{"title":"DeepLearning", "writer": "Velopert", "desc":"bigdata"},
+   {"title":"java", "publisher": "oracle",  "price" : 12000, "desc":"nosql"},
+    {"title":"sql", "publisher": "ansi",  "price" : 5000, "desc":"standard"},
+    {"title":"javascript", "publisher": "w3c",  "price" : 10000, "desc":"web script"},
+    {"title":"jquery", "publisher": "w3c",  "price" : 13000, "desc":"web library"}
+
+   ]) 
+> db.books.find().pretty()
+> db.books.find( { "writer": "Velopert" } ).pretty()
+> db.books.find( { "price": { $gt: 10000, $lt: 20000 } } ).pretty()
+> db.books.find( { "title": { $in: [ "java", "sql" ] } } ).pretty()
+> db.books.find({ $or: [ { "title": "javascript" }, { "writer": "Velopert" } ] })
+
+#Collection 생성
+capped 속성 : Collection의 익스텐트 모두 사용되면 다시 처음부터 재사용할 수 있는 데이터 구조로 생성
+size 속성 : Collection의 최초 생성 크기 정의
+mongo>db.createCollection("emp", {capped: true, size:8192});
+
+#Collection의 현재 상태 및 정보 분석
+mongo>db.emp.validate()
+
+mongo>db.emp.drop()
+mongo>show collections
+
+
+mongo> m= {ename: "smith"}
+mongo> n= {empno:1101}
+mongo> db.emp.save(m)
+mongo> db.emp.save(n)
+mongo> show collections
+mongo> db.emp.find()
+
+#Document  Update
+update 메서드는 하나의 Document에서 특정 필드 만을 수정하는 경우 사용되는 메소드
+save 메서드는 search condition으로 object Id를 주면  update가 document 단위로 데이터를 변경되며, object Id를 주지 않으면 insert 된다.
+mongo> db.emp.update({emp:1101}, {$set: {ename:"tod", dept:"accounting"}})
+mongo> db.emp.find()
+mongo> db.emp.save({empno:1102, ename:"Blake", dept:"research"})
+mongo> db.emp.find()
+
+
+#세션 종료
+mongo> db.logout()
+
+#mongo shell종료
+mongo> exit
+
+
+
+##############################################
+참고 : mongodb 사용자 생성 및 인증
+#############################################
+사용자를 관리할 계정을 만듭니다.
+>use admin
+>db.createUser( 
+  {  user:"mgAdmin",
+     pwd:"abc123",
+     roles : [ {role:"userAdminAnyDatabase", db:"admin"}]
+  }
+)
+
+MongoDB 접근 제한, dbpath설정
+os>  mongod --auth  --port  27017  --dbpath c:/data 
+
+#사용자 관리자로 연결하고 인증합니다.
+os>  mongo --port 27017 -u "mgAdmin" -p "abc123"  --authenticationDatabase "admin"
+
+#실행에 필요한 사용자도 추가해줍니다.
+use test
+db.createUser(
+{  user:"myTester",
+     pwd:"abc123",
+     roles : [{role:"readWrite", db:"test"},
+               {role:"read", db:"reporting"}  ]
+   }
+)
+
+#추가한 사용자로 로그인 해봅니다.
+os> mongo --port 27017 -u "myTester" -p "abc123"  --authenticationDatabase "test"
+
+
+
+
+
+
+
+
