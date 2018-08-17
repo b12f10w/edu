@@ -1,0 +1,66 @@
+#####################################
+Redis 설치 및 설정
+#####################################
+# EPEL 저장소 등록 하기
+# EPEL 저장소를 먼저 등록한다.
+#[root@localhost ~]# rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+[root@localhost ~]# rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
+
+#EPEL 저장소 등록 하기
+#[root@localhost ~]# wget ?r ?no?parent ?A 'epel-release-*.rpm' http://dl.fedoraproject.org/pub/epel/7/x86_64/e/ rpm ?Uvh dl.fedoraproject.org/pub/epel/7/x86_64/e/epel?release-*.rpm
+
+/etc/yum.repos.d  하위 디렉토리에 아래와 같이 2개의 epel 저장소가 등록된다.
+1. epel.repo
+2. epel-testing.repo
+[root@localhost ~]# ls -l /etc/yum.repos.d/
+
+# Redis  Server 설치
+[root@localhost ~]# yum -y install --enablerepo=remi redis
+
+
+
+
+#redis server의 중요한  환경파일은 아래와 같다.
+1. /etc/redis.conf
+2. /etc/redis-sentinel.conf
+
+## 설정파일 수정
+vi /etc/redis.conf
+#### /etc/redis.conf
+pidfile /var/run/redis/redis.pid
+dir /var/lib/redis/
+port 6379
+logfile /var/log/redis/redis.log
+#bind 127.0.0.1
+
+
+? pidfile : pid 파일 경로
+? REDIS_CONFIG : 설정파일 경로
+? dir : 데이터파일 경로
+? logfile : 로그파일 경로
+? vm-swap-file : 스왑파일 경로
+? #bind 127.0.0.1 : 원격에서 접속하기 위해서 주석처리
+
+
+# redis server실행하기.
+[root@localhost ~]# systemctl start redis.service
+
+#redis server실행  상태 확인
+[root@localhost ~]# systemctl status redis.service
+
+#Redis Client를 통한 확인
+[root@localhost ~]# redis-cli ping   #PONG이 응답으로 리턴되어야 합니다.
+
+#Listening Port Of Redis Server
+[root@localhost ~]# ss -nlp|grep redis
+
+
+#redis server 중지
+[root@localhost ~]# systemctl stop redis.service
+
+#redis server 재 시작
+[root@localhost ~]# systemctl restart redis.service
+
+
+#  localhost에서 실행중인 redis server로 접속
+[root@localhost ~]# redis-cli -h localhost
