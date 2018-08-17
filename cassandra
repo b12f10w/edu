@@ -1,0 +1,43 @@
+[cassandra@localhost ~]$  su -
+centos7
+##################################
+Cassandra Step 1 - Install JAVA
+##################################
+[root@localhost ~]# yum -y update
+[root@localhost ~]# wget --no-cookies --no-check-certificate --header "Cookie:oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm"
+[root@localhost ~]# yum -y localinstall jdk-8u131-linux-x64.rpm
+[root@localhost ~]# java -version
+[root@localhost ~]# echo $JAVA_HOME
+[root@localhost ~]# nano ~/.bash_profile
+export JAVA_HOME=/usr/java/jdk1.8.0_131/
+export JRE_HOME=/usr/java/jdk1.8.0_131/jre
+[root@localhost ~]# source ~/.bash_profile
+[root@localhost ~]# echo $JAVA_HOME
+
+
+###################################
+Step 2 - Installing Cassandra
+###################################
+[root@localhost ~]# nano /etc/yum.repos.d/cassandra.repo
+[cassandra]
+name=Apache Cassandra
+baseurl=https://www.apache.org/dist/cassandra/redhat/311x/
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://www.apache.org/dist/cassandra/KEYS
+[root@localhost ~]# yum -y install cassandra
+
+#system daemon들 reload
+[root@localhost ~]# systemctl daemon-reload
+
+#Cassandra  start 
+[root@localhost ~]# systemctl start cassandra
+
+#부팅시에 자동으로 Cassandra 활성화 
+[root@localhost ~]# systemctl enable cassandra
+
+#Cassandra 실행 확인
+[root@localhost ~]# nodetool status
+
+#Cassandra Query language. To access CQL shell, run 
+[root@localhost ~]# cqlsh
