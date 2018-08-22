@@ -1,3 +1,17 @@
+## Mongo DB 설치
+
+1. mongodb-win32-x86_64-2008plus-ssl-3.6.2-signed.msi 파일을 더블클릭한다
+   전체 버젼으로 설치 한다
+
+2. 커맨트 창을 관리자 권한으로 실행하고 다음의 명령어를 순서대로 입력한다
+2.1 cd C:\Program Files\MongoDB\Server\3.6\bin
+2.2 mongod.exe --dbpath "C:\education\java_script\program\mongodata\db"
+2.3 2의 창을 닫으면 mongodb가 종료되므로 창을 그대로 둔다
+
+
+(설치오래 걸림)3. MongoDB Compass Community 프로그램을 실행시켜서 mongodb에 접속되는지 확인 한다 
+--------------------------------------------------------------------------------------
+
 #MongoDB 인스턴스 활성화 (MongoDB 서버 start)
 "C:\Program Files\MongoDB\Server\4.0\bin\mongod.exe" --dbpath="c:\data\db"  --logpath="c:\log\"
 
