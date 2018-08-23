@@ -1,0 +1,10 @@
+1. angular 프로젝트 생성
+1.1 도스 프롬프트창 실행후 다음의 명령을 차례로 입력
+cd c:\education\java_script
+mkdir workspace
+cd workspace
+npm install --no-optional -g @angular/cli
+ng new --no-optional my-dream-app
+
+
+
