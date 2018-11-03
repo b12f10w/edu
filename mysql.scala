@@ -258,3 +258,39 @@ INSERT INTO projects_parallelism (name, website, manager) SELECT name, website, 
 object SparkShell {
   
 }
+
+
+ - # mysql 
+     => 'root' 계정에 패스워드 'root' 설정....
+     
+  - mysql> use mysql;
+  
+  - mysql> SELECT Host,User,Password FROM mysql.user;
+  
+  - mysql> update user set password=PASSWORD('root') where user='root';  
+  
+  - mysql> flush privileges;  
+  
+  - mysql> grant all on *.* to 'root'@'localhost' identified by 'root' with grant option;
+  
+  - mysql> grant all on *.* to 'root'@'CentOS7-14' identified by 'root' with grant option;
+  
+  - mysql> grant all on *.* to 'root'@'%' identified by 'root' with grant option;
+  
+  - mysql> flush privileges;
+  
+  - mysql> quit;
+  
+  - # mysqladmin -u root -p shutdown
+  
+  - # systemctl start mysqld	=> centos6의 경우 # service mysqld start
+     
+     
+     
+  - # mysql -uroot -proot
+     => 기존에 'metastore_db' 데이터베이스가 있으면 삭제.... 
+  
+  - mysql> drop database if exists metastore_db;
+  
+  - mysql> show databases;
+  
